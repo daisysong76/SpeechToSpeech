@@ -4,6 +4,10 @@ from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import torch
 import resampy
 import soundfile as sf
+import logging
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
 
 # Load the processor and model
 processor = WhisperProcessor.from_pretrained("openai/whisper-large-v3")
@@ -23,11 +27,11 @@ def transcribe_audio(file_path):
         input_features = processor(audio_input, sampling_rate=sample_rate, return_tensors="pt").input_features.to("cuda")
 
         # Perform inference
-        generated_ids = model.generate(input_features)
+        generated_ids = model.generate(input_features, forced_decoder_ids=processor.get_decoder_prompt_ids(language="fr", task="transcribe"))
 
         # Decode the transcription
         transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)
         return transcription[0]
     except Exception as e:
-        print(f"Error processing {file_path}: {e}")
+        logging.error(f"Error processing {file_path}: {e}")
         return None

@@ -4,8 +4,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from tqdm import tqdm
 
 # Load the tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained("/data/akshat/models/Llama-2-7b-chat-hf")
-model = AutoModelForCausalLM.from_pretrained("/data/akshat/models/Llama-2-7b-chat-hf")
+tokenizer = AutoTokenizer.from_pretrained("/data/akshat/models/Meta-Llama-3-8B")
+model = AutoModelForCausalLM.from_pretrained("/data/akshat/models/Meta-Llama-3-8B")
 
 def translate_text_with_prompt(text):
     prompt = f"Translate the following French text to English: '{text}'"
@@ -27,7 +27,7 @@ def save_translations(translations, output_file):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Translate transcriptions using Meta-Llama-2-7B-chat with prompt engineering")
+    parser = argparse.ArgumentParser(description="Translate transcriptions using Llama-3-8B with prompt engineering")
     parser.add_argument("transcriptions_file", type=str, help="Path to the transcriptions JSON file")
     parser.add_argument("output_file", type=str, help="Path to save the translated JSON file")
     args = parser.parse_args()

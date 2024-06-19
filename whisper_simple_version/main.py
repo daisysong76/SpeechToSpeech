@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from transcribe import transcribe_audio
-from speechtospeech.whisper.whisper_simple_version.translate_Helsinki import translate_text
+from speechtospeech.whisper.whisper_simple_version.others.translate_Helsinki import translate_text
 
 def load_dataset(file_path):
     return pd.read_csv(file_path, sep='\t')
