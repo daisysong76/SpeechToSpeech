@@ -3,18 +3,6 @@ import logging
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from tqdm import tqdm
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import pandas_udf, PandasUDFType
-import pandas as pd
-# Initialize Spark session
-spark = SparkSession.builder \
-    .appName("TranslationProcessing") \
-    .getOrCreate()
-# Load the data
-df = spark.read.json("/data/daisysxm76/speechtospeech/dataset_fr_en/transcriptions.json")
-
-
-
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
@@ -22,16 +10,16 @@ logging.basicConfig(level=logging.INFO)
 model_path = "/data/akshat/models/Meta-Llama-3-8B"
 try:
     tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(model_path).to("cuda")
     logging.info(f"Model {model_path} loaded successfully.")
 except Exception as e:
     logging.error(f"Error loading model {model_path}: {e}")
     raise
 
-def translate_text(text, max_new_tokens=50):
+def translate_text(text, max_new_tokens=30):
     try:
         prompt = f"Translate the following French text to English:\n\n{text}\n\nTranslation:"
-        inputs = tokenizer(prompt, return_tensors="pt")
+        inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
         outputs = model.generate(**inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
         translation = tokenizer.decode(outputs[0], skip_special_tokens=True)
         # Extract the English part after the "Translation:" prompt

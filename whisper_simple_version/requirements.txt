@@ -16,3 +16,4 @@ datasets
 soundfile
 sentencepiece
 resampy 
+jiwer
