@@ -10,8 +10,8 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch import nn
 
-from .transcribe_old import transcribe as transcribe_function
-from .transcribe_old import transcribe_audio as transcribe_audio_function
+from .others.transcribe_old import transcribe as transcribe_function
+from .others.transcribe_old import transcribe_audio as transcribe_audio_function
 from .decoding import detect_language as detect_language_function, decode as decode_function
 
 @dataclass

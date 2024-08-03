@@ -38,7 +38,7 @@
 
 # old stuff the rest
 
-from .transcribe_old import cli
+from .others.transcribe_old import cli
 
 
 cli()

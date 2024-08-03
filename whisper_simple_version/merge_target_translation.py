@@ -28,7 +28,7 @@ def match_audio_files(json_data, tsv_data):
                 "transcribed_text": item["transcribed_text"],
                 "translated_text": item["translated_text"],
                 "original_transcription": item["original_transcription"],
-                "tsv_translation": tsv_data[audio_file]
+                "target_translation": tsv_data[audio_file]
             })
         else:
             print(f"Audio file {audio_file} not found in TSV data.")

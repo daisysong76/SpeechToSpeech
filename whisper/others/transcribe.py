@@ -9,8 +9,9 @@ from typing import List, Optional, Tuple, Union, TYPE_CHECKING
 import numpy as np
 import torch
 import tqdm
+import pandas as pd
 
-from .audio import SAMPLE_RATE, N_FRAMES, HOP_LENGTH, pad_or_trim, log_mel_spectrogram
+from ..whisper_audio_processing import SAMPLE_RATE, N_FRAMES, HOP_LENGTH, pad_or_trim, log_mel_spectrogram
 # SAMPLE_RATE: the sample rate of the audio files being processed. The sample rate is the number of samples of audio carried per second, typically measured in Hertz (Hz).
 # N_FRAMES: the number of frames in the audio spectrogram. Frames are segments of the audio signal used for processing.
 # HOP_LENGTH: the number of audio samples between successive frames. It controls the overlap between frames in the spectrogram.
@@ -18,10 +19,14 @@ from .audio import SAMPLE_RATE, N_FRAMES, HOP_LENGTH, pad_or_trim, log_mel_spect
 # log_mel_spectrogram: This function converts an audio signal into a log-scaled Mel spectrogram, which is a representation of the power spectrum of the audio signal. It is used as input for the transcription model.
 from .decoding import DecodingOptions, DecodingResult 
 from .tokenizer import LANGUAGES, TO_LANGUAGE_CODE, get_tokenizer    
-from .utils import exact_div, format_timestamp, optional_int, optional_float, str2bool, write_txt, write_vtt, write_srt
+from ..utils import exact_div, format_timestamp, optional_int, optional_float, str2bool, write_txt, write_vtt, write_srt
 
 if TYPE_CHECKING:
-    from .model import Whisper
+    from ..model import Whisper
+
+# New code : load the dataset
+def load_dataset(file_path: str) -> pd.DataFrame:
+    return pd.read_csv(file_path, sep='\t')
 
 def transcribe_audio(
     model: "Whisper",
@@ -47,6 +52,10 @@ def transcribe_audio(
         decode_options["fp16"] = False
 
     mel = log_mel_spectrogram(audio)
+
+    # New code added:
+    if decode_options.get("language", None) is None:
+        decode_options["language"] = "fr"
 
     single = mel.ndim == 2
     # TODO: change this if the desired length is not 10s
@@ -124,6 +133,10 @@ def transcribe(
 
     mel = log_mel_spectrogram(audio)
 
+    # new code
+    if decode_options.get("language", None) is None:
+        decode_options["language"] = "fr"
+
     if decode_options.get("language", None) is None:
         if not model.is_multilingual:
             decode_options["language"] = "en"
@@ -137,7 +150,10 @@ def transcribe(
                 print(f"Detected language: {LANGUAGES[decode_options['language']].title()}")
 
     language = decode_options["language"]
-    task = decode_options.get("task", "transcribe")
+    # my code: set for the model to perform translation from French to English instead of just transcribing
+    task = "translate"
+    # original code: 
+    #task = decode_options.get("task", "transcribe")
     tokenizer = get_tokenizer(model.is_multilingual, language=language, task=task)
 
     def decode_with_fallback(segment: torch.Tensor) -> DecodingResult:
@@ -292,10 +308,14 @@ def transcribe(
 
 
 def cli():
-    from . import available_models
+    from ... import available_models
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("audio", nargs="+", type=str, help="audio file(s) to transcribe")
+    # new code
+    parser.add_argument("dataset", type=str, help="path to the dataset TSV file")
+    # old code
+    #parser.add_argument("audio", nargs="+", type=str, help="audio file(s) to transcribe")
+    
     parser.add_argument("--model", default="small", choices=available_models(), help="name of the Whisper model to use")
     parser.add_argument("--model_dir", type=str, default=None, help="the path to save model files; uses ~/.cache/whisper by default")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference")
@@ -329,6 +349,10 @@ def cli():
     device: str = args.pop("device")
     os.makedirs(output_dir, exist_ok=True)
 
+    # new code added:
+    dataset_path = args.pop("dataset")
+    df = load_dataset(dataset_path)
+
     if model_name.endswith(".en") and args["language"] not in {"en", "English"}:
         if args["language"] is not None:
             warnings.warn(f"{model_name} is an English-only model but receipted '{args['language']}'; using English instead.")
@@ -345,7 +369,7 @@ def cli():
     if threads > 0:
         torch.set_num_threads(threads)
 
-    from . import load_model
+    from ... import load_model
     model = load_model(model_name, device=device, download_root=model_dir)
 
     for audio_path in args.pop("audio"):

@@ -1,3 +1,6 @@
+# This code provides functions and classes for detecting the language spoken in an audio file and for decoding audio to text using the Whisper model. 
+
+
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Iterable, Optional, Sequence, Union, TYPE_CHECKING
 
@@ -7,9 +10,9 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch.distributions import Categorical
 
-from .audio import CHUNK_LENGTH
+from ..whisper_audio_processing import CHUNK_LENGTH
 from .tokenizer import Tokenizer, get_tokenizer
-from .utils import compression_ratio
+from ..utils import compression_ratio
 
 if TYPE_CHECKING:
     from .model import Whisper

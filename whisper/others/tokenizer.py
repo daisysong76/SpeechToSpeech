@@ -1,3 +1,4 @@
+# The provided code snippet defines a set of utilities and classes for tokenizing text, particularly for handling multilingual text with special tokens
 import os
 from dataclasses import dataclass
 from functools import lru_cache
@@ -125,7 +126,16 @@ TO_LANGUAGE_CODE = {
     "castilian": "es",
 }
 
+# Imports: Imports various necessary libraries and modules.
+# LANGUAGES: A dictionary mapping language codes to language names.
+# TO_LANGUAGE_CODE: A dictionary mapping language names (and some aliases) to language codes.
 
+# Tokenizer class: A wrapper around GPT2TokenizerFast providing quick access to special tokens.
+# encode method: Encodes a given text using the tokenizer.
+# decode method: Decodes a list of token IDs back into text.
+# decode_with_timestamps method: Decodes tokens and annotates timestamp tokens with their respective times.
+# eot, sot, and other properties: Cached properties to get specific special token IDs.
+# _get_single_token_id method: Ensures that a given text is encoded as a single token and returns its ID.
 @dataclass(frozen=True)
 class Tokenizer:
     """A thin wrapper around `GPT2TokenizerFast` providing quick access to special tokens"""
