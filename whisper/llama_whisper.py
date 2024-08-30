@@ -1,5 +1,6 @@
 
 # CUDA_VISIBLE_DEVICES=1 python3 /data/daisysxm76/speechtospeech/whisper/whisper/llama_whisper.py /data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/clips /data/daisysxm76/speechtospeech/dataset_fr_en/fine_tuned_model_whisper --tsv_file /data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/train_first1000_translate.tsv
+# CUDA_VISIBLE_DEVICES=1 python3 -m pdb /data/daisysxm76/speechtospeech/whisper/whisper/llama_whisper.py /data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/clips /data/daisysxm76/speechtospeech/dataset_fr_en/fine_tuned_model_whisper --tsv_file /data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/train_first1000_translate.tsv
 
 import os
 import logging
@@ -19,13 +20,16 @@ from transformers import DataCollatorForSeq2Seq, DataCollatorWithPadding, DataCo
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"  # Use GPU 0
+
 
 # from transformers import WhisperProcessor, WhisperModel, LlamaForCausalLM, PreTrainedTokenizerFast, AutoTokenizer
 import torch.optim as optim
 from torch.cuda.amp import GradScaler, autocast
 
 from models import TLTR
-tltr_model = TLTR(mode='lw_8_8_tr') ## ????
+tltr_model = TLTR(mode='lw_8_8_tr') ## ???? # 'lw_8_8_tr')
+#tltr_model = 'lw_tr'
 
 # Initialize the GradScaler
 scaler = GradScaler()
@@ -467,13 +471,18 @@ def main(audio_dir: str, output_dir: str, device: str, tsv_file: str):
     save_fine_tuned_lora_weights(llama_model, output_dir)
 
 if __name__ == "__main__":
+    # To start debugging the script, uncomment the following line:
+    # CUDA_VISIBLE_DEVICES=1 python3 -m pdb /data/daisysxm76/speechtospeech/whisper/whisper/llama_whisper.py /data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/clips /data/daisysxm76/speechtospeech/dataset_fr_en/fine_tuned_model_whisper --tsv_file /data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/train_first1000_translate.tsv
+
+    # Initialize the parser and arguments
     parser = argparse.ArgumentParser(description="Process and fine-tune LLama model with LoRA using audio embeddings.")
-    parser.add_argument("audio_dir", type=str, help="Directory containing the input audio files")
-    parser.add_argument("output_dir", type=str, help="Directory to save the fine-tuned LoRA weights")
+    parser.add_argument("audio_dir", type=str, help="Directory containing the input audio files", nargs='?', default="/data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/clips")
+    parser.add_argument("output_dir", type=str, help="Directory to save the fine-tuned LoRA weights", nargs='?', default="/data/daisysxm76/speechtospeech/dataset_fr_en/fine_tuned_model_whisper")
     parser.add_argument("--device", type=str, default="cuda:0", help="CUDA device to use for models")
-    parser.add_argument("--tsv_file", type=str, help="Path to the TSV file containing the dataset")
+    parser.add_argument("--tsv_file", type=str, help="Path to the TSV file containing the dataset", default="/data/daisysxm76/speechtospeech/dataset_fr_en/cv-corpus-17.0-2024-03-15/fr/train_first1000_translate.tsv")
     args = parser.parse_args()
-    
+
+    # Start the main process
     main(args.audio_dir, args.output_dir, args.device, args.tsv_file)
 
 
